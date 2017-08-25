@@ -1,0 +1,14 @@
+before_script:
+  - . ~/.nvm/nvm.sh && nvm use 8
+
+stages:
+  - test
+
+test:
+  stage: test
+  tags:
+    - shell
+  script:
+   - npm i
+   - npm update
+   - grunt
