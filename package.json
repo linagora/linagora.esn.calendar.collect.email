@@ -60,10 +60,7 @@
   },
   "dependencies": {
     "awesome-module": "1.0.0",
-    "async": "2.0.1",
-    "bower": "1.7.9",
-    "express": "4.14.0",
-    "glob-all": "3.0.3",
+    "ical.js": "linagora/ical.js#v1.1.2-#279-require-twice-protection",
     "lodash": "4.15.0",
     "q": "1.4.1"
   }
