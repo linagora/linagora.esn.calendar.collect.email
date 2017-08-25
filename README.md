@@ -1,60 +1,11 @@
-# linagora.esn.seed
+# linagora.esn.calendar.collect.email
 
-Seed module as basis to create other modules
+This module listen to OpenPaaS Events published from linagora.esn.calendar module and collect the attendees emails using linagora.esn.contact.collect module.
 
-## Install
+## Installation
 
-*Note: The following instructions assumes that you have already installed OpenPaaS ESN in the path referenced by $ESN below.*
+This module can be installed in OpenPaaS as other modules. Check the [documentation](http://docs.open-paas.org/) for more details.
 
-While waiting for a npm-based dependency injection handler, you have to install the module in OpenPaaS ESN like this:
+## Technical considerations
 
-**1. Clone**
-
-```
-git clone https://ci.linagora.com/linagora/lgs/openpaas/linagora.esn.seed.git
-```
-
-**2. Install it in OpenPaaS**
-
-There is two way to install the model in OpenPaaS, so choose one of them:
-
-- A. _Using symbolic links_
-
-  The modules must be available in the `$ESN/modules` folder:
-
-  ```
-  cd $ESN/modules
-  ln -s path_to_module/linagora.esn.seed
-  ```
-- B. _Using npm link_
-
-  Go inside the module repository:
-  
-  ```
-  npm link
-  ```
-  
-  Go inside OpenPaaS ESN repository:
-  
-  ```
-  cd $ESN
-  npm link linagora.esn.seed
-  npm install
-  ```
-
-**2. Enable the module in the OpenPaaS ESN configuration file**
-
-You must add the module in the modules section in `$ESN/config/default.NODE_ENV.json`. NODE_ENV is the environment variable used to define if the node application is running in 'production' or in 'development' (the default environment is 'development').
-Copy the 'modules' array from `$ESN/config/default.json` into `$ESN/config/default.NODE_ENV.json` (`$ESN/config/default.development.json` or `$ESN/config/default.production.json`) and add the module name:
-
-```
-"modules": [
-  "linagora.esn.core.webserver",
-  "linagora.esn.core.wsserver",
-  "linagora.esn.seed"
-],
-```
-
-## Run
-
-Once installed, you can start OpenPaaS ESN as usual. The **awesome module** is available in the application grid menu.
+Once a calendar event is created or updated, a message is published on the OpenPaaS platform local pubsub component. The current component subscribes to the pubsub, extracts attendees from the ICS data and then call the contact collector API.
