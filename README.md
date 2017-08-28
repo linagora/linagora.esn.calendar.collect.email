@@ -8,4 +8,4 @@ This module can be installed in OpenPaaS as other modules. Check the [documentat
 
 ## Technical considerations
 
-Once a calendar event is created or updated, a message is published on the OpenPaaS platform local pubsub component. The current component subscribes to the pubsub, extracts attendees from the ICS data and then call the contact collector API.
+Once a calendar event is created or updated, a message is published on the OpenPaaS platform local pubsub component. The current component subscribes to the pubsub, extracts attendees and organizer from the ICS data and then call the contact collector API.
