@@ -18,16 +18,12 @@ module.exports = dependencies => {
   function collect(event) {
     logger.info('Collecting emails from Calendar event', event);
 
-    const emailsToCollect = {userId: event.userId, emails: getAttendeesEmailsFromICS(event.ics)};
+    const eventAsJCAL = calendarModule.helpers.jcal.jcal2content(event.ics, '');
+    let attendeesEmails = _.map(eventAsJCAL.attendees, (data, email) => (email));
 
-    return contactCollector.handler.handle(emailsToCollect)
-      .then(() => logger.info('Calendar event emails have been collected'))
-      .catch(err => logger.error('Error while collecting calendar event emails', err));
-  }
+    eventAsJCAL.organizer.email && attendeesEmails.push(eventAsJCAL.organizer.email);
+    attendeesEmails = _.uniq(attendeesEmails);
 
-  function getAttendeesEmailsFromICS(ics) {
-    const jcal = calendarModule.helpers.jcal.jcal2content(ics, '');
-
-    return _.map(jcal.attendees, (data, email) => (email));
+    return contactCollector.handler.handle({userId: event.userId, emails: attendeesEmails});
   }
 };
