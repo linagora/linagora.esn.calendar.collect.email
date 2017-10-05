@@ -220,6 +220,61 @@ describe('The listener lib module', function() {
           done();
         }, done);
       });
+
+      it('should not collect attendee with cutype=resource', function(done) {
+        let handler;
+        const resourceEmail = 'id@domain.com';
+
+        jcal.attendees[resourceEmail] = { partstat: 'ACCEPTED', cn: undefined, cutype: 'resource' };
+
+        const jcal2contentSpy = sinon.stub().returns(jcal);
+        const handleSpy = sinon.stub().returns(Promise.resolve());
+        const topicSpy = sinon.spy(function(topicName) {
+          if (topicName === EVENT_ADDED) {
+            return {
+              subscribe: function(_handler) {
+                handler = _handler;
+              }
+            };
+          }
+
+          return {
+            subscribe: function() {}
+          };
+        });
+
+        this.moduleHelpers.addDep('pubsub', {
+          local: {
+            topic: topicSpy
+          }
+        });
+
+        this.moduleHelpers.addDep('calendar', {
+          constants: {
+            NOTIFICATIONS: {
+              EVENT_ADDED: EVENT_ADDED
+            }
+          },
+          helpers: {
+            jcal: {
+              jcal2content: jcal2contentSpy
+            }
+          }
+        });
+
+        this.moduleHelpers.addDep('contact-collect', {
+          handler: {
+            handle: handleSpy
+          }
+        });
+
+        this.requireModule().start();
+        handler(event).then(() => {
+          expect(jcal2contentSpy).to.have.been.calledWith(ics, '');
+          expect(handleSpy).to.have.been.calledWith({userId, emails: [email1, email2]});
+          done();
+        }, done);
+      });
     });
   });
 });

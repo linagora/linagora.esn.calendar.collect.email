@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const RESOURCE_CUTYPE = 'resource';
 
 module.exports = dependencies => {
   const pubsub = dependencies('pubsub');
@@ -19,7 +20,13 @@ module.exports = dependencies => {
     logger.info('Collecting emails from Calendar event', event);
 
     const eventAsJCAL = calendarModule.helpers.jcal.jcal2content(event.ics, '');
-    let attendeesEmails = _.map(eventAsJCAL.attendees, (data, email) => (email));
+    let attendeesEmails = _.map(eventAsJCAL.attendees, (data, email) => {
+      data.email = email;
+
+      return data;
+    })
+    .filter(attendee => attendee.cutype !== RESOURCE_CUTYPE)
+    .map(entry => entry.email);
 
     eventAsJCAL.organizer.email && attendeesEmails.push(eventAsJCAL.organizer.email);
     attendeesEmails = _.uniq(attendeesEmails);
