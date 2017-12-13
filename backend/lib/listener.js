@@ -12,15 +12,15 @@ module.exports = dependencies => {
   };
 
   function start() {
-    pubsub.local.topic(calendarModule.constants.NOTIFICATIONS.EVENT_ADDED).subscribe(collect);
-    pubsub.local.topic(calendarModule.constants.NOTIFICATIONS.EVENT_UPDATED).subscribe(collect);
+    pubsub.global.topic(calendarModule.constants.EVENTS.EVENT.CREATED).subscribe(collect);
+    pubsub.global.topic(calendarModule.constants.EVENTS.EVENT.UPDATED).subscribe(collect);
   }
 
-  function collect(event) {
-    logger.info('Collecting emails from Calendar event', event);
+  function collect(msg) {
+    logger.info('Collecting emails from Calendar event', msg);
 
-    const eventAsJCAL = calendarModule.helpers.jcal.jcal2content(event.ics, '');
-    let attendeesEmails = _.map(eventAsJCAL.attendees, (data, email) => {
+    const { event, eventPath } = calendarModule.helpers.pubsub.parseMessage(msg);
+    let emails = _.map(event.attendees, (data, email) => {
       data.email = email;
 
       return data;
@@ -28,9 +28,9 @@ module.exports = dependencies => {
     .filter(attendee => attendee.cutype !== RESOURCE_CUTYPE)
     .map(entry => entry.email);
 
-    eventAsJCAL.organizer.email && attendeesEmails.push(eventAsJCAL.organizer.email);
-    attendeesEmails = _.uniq(attendeesEmails);
+    event.organizer.email && emails.push(event.organizer.email);
+    emails = _.uniq(emails);
 
-    return contactCollector.handler.handle({userId: event.userId, emails: attendeesEmails});
+    return contactCollector.handler.handle({userId: eventPath.userId, emails});
   }
 };

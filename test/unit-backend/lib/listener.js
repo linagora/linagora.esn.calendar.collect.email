@@ -4,7 +4,7 @@ const expect = require('chai').expect;
 const sinon = require('sinon');
 
 describe('The listener lib module', function() {
-  let email1, email2, orgEmail, jcal, userId, ics, event, EVENT_ADDED, EVENT_UPDATED;
+  let email1, email2, orgEmail, jcal, userId, ics, event, EVENT_CREATED, EVENT_UPDATED;
 
   beforeEach(function() {
     email1 = 'me@mail.com';
@@ -12,7 +12,7 @@ describe('The listener lib module', function() {
     orgEmail = email1;
     userId = 1;
     ics = 2;
-    EVENT_ADDED = 'event:add';
+    EVENT_CREATED = 'event:add';
     EVENT_UPDATED = 'event:updated';
     event = {userId, ics};
     jcal = {
@@ -60,26 +60,28 @@ describe('The listener lib module', function() {
       });
 
       this.moduleHelpers.addDep('pubsub', {
-        local: {
+        global: {
           topic: topicSpy
         }
       });
 
       this.moduleHelpers.addDep('calendar', {
         constants: {
-          NOTIFICATIONS: {
-            EVENT_ADDED: EVENT_ADDED
+          EVENTS: {
+            EVENT: {
+              CREATED: EVENT_CREATED
+            }
           }
         }
       });
 
       this.requireModule().start();
       expect(topicSpy).to.have.been.calledTwice;
-      expect(topicSpy).to.have.been.calledWith(EVENT_ADDED);
+      expect(topicSpy).to.have.been.calledWith(EVENT_CREATED);
       expect(subscribeSpy).to.have.been.calledTwice;
     });
 
-    it('should subscribe to EVENT_UPDATED local topic', function() {
+    it('should subscribe to EVENT_UPDATED global topic', function() {
       const subscribeSpy = sinon.spy();
       const topicSpy = sinon.spy(function() {
         return {
@@ -88,15 +90,17 @@ describe('The listener lib module', function() {
       });
 
       this.moduleHelpers.addDep('pubsub', {
-        local: {
+        global: {
           topic: topicSpy
         }
       });
 
       this.moduleHelpers.addDep('calendar', {
         constants: {
-          NOTIFICATIONS: {
-            EVENT_UPDATED: EVENT_UPDATED
+          EVENTS: {
+            EVENT: {
+              UPDATED: EVENT_UPDATED
+            }
           }
         }
       });
@@ -110,14 +114,13 @@ describe('The listener lib module', function() {
     describe('On event', function() {
       it('should call the contact collector handler with valid email attendees', function(done) {
         let handler;
-        const jcal2contentSpy = sinon.spy(function() {
-          return jcal;
+        const parseMessage = sinon.stub().returns({
+          eventPath: {userId},
+          event: jcal
         });
-        const handleSpy = sinon.spy(function() {
-          return Promise.resolve();
-        });
+        const handleSpy = sinon.stub().returns(Promise.resolve());
         const topicSpy = sinon.spy(function(topicName) {
-          if (topicName === EVENT_ADDED) {
+          if (topicName === EVENT_CREATED) {
             return {
               subscribe: function(_handler) {
                 handler = _handler;
@@ -131,20 +134,22 @@ describe('The listener lib module', function() {
         });
 
         this.moduleHelpers.addDep('pubsub', {
-          local: {
+          global: {
             topic: topicSpy
           }
         });
 
         this.moduleHelpers.addDep('calendar', {
           constants: {
-            NOTIFICATIONS: {
-              EVENT_ADDED: EVENT_ADDED
+            EVENTS: {
+              EVENT: {
+                CREATED: EVENT_CREATED
+              }
             }
           },
           helpers: {
-            jcal: {
-              jcal2content: jcal2contentSpy
+            pubsub: {
+              parseMessage
             }
           }
         });
@@ -157,7 +162,7 @@ describe('The listener lib module', function() {
 
         this.requireModule().start();
         handler(event).then(() => {
-          expect(jcal2contentSpy).to.have.been.calledWith(ics, '');
+          expect(parseMessage).to.have.been.calledWith(event);
           expect(handleSpy).to.have.been.calledWith({userId, emails: [email1, email2]});
           done();
         }, done);
@@ -166,16 +171,13 @@ describe('The listener lib module', function() {
       it('should keep the organizer email if not already in attendees', function(done) {
         let handler;
         const keepEmail = 'keepme@mail.com';
-        const jcal2contentSpy = sinon.spy(function() {
-          jcal.organizer.email = keepEmail;
-
-          return jcal;
+        const parseMessage = sinon.stub().returns({
+          eventPath: {userId},
+          event: jcal
         });
-        const handleSpy = sinon.spy(function() {
-          return Promise.resolve();
-        });
+        const handleSpy = sinon.stub().returns(Promise.resolve());
         const topicSpy = sinon.spy(function(topicName) {
-          if (topicName === EVENT_ADDED) {
+          if (topicName === EVENT_CREATED) {
             return {
               subscribe: function(_handler) {
                 handler = _handler;
@@ -189,20 +191,22 @@ describe('The listener lib module', function() {
         });
 
         this.moduleHelpers.addDep('pubsub', {
-          local: {
+          global: {
             topic: topicSpy
           }
         });
 
         this.moduleHelpers.addDep('calendar', {
           constants: {
-            NOTIFICATIONS: {
-              EVENT_ADDED: EVENT_ADDED
+            EVENTS: {
+              EVENT: {
+                CREATED: EVENT_CREATED
+              }
             }
           },
           helpers: {
-            jcal: {
-              jcal2content: jcal2contentSpy
+            pubsub: {
+              parseMessage
             }
           }
         });
@@ -213,9 +217,10 @@ describe('The listener lib module', function() {
           }
         });
 
+        jcal.organizer.email = keepEmail;
         this.requireModule().start();
         handler(event).then(() => {
-          expect(jcal2contentSpy).to.have.been.calledWith(ics, '');
+          expect(parseMessage).to.have.been.calledOnce;
           expect(handleSpy).to.have.been.calledWith({userId, emails: [email1, email2, keepEmail]});
           done();
         }, done);
@@ -227,10 +232,13 @@ describe('The listener lib module', function() {
 
         jcal.attendees[resourceEmail] = { partstat: 'ACCEPTED', cn: undefined, cutype: 'resource' };
 
-        const jcal2contentSpy = sinon.stub().returns(jcal);
+        const parseMessage = sinon.stub().returns({
+          eventPath: {userId},
+          event: jcal
+        });
         const handleSpy = sinon.stub().returns(Promise.resolve());
         const topicSpy = sinon.spy(function(topicName) {
-          if (topicName === EVENT_ADDED) {
+          if (topicName === EVENT_CREATED) {
             return {
               subscribe: function(_handler) {
                 handler = _handler;
@@ -244,20 +252,22 @@ describe('The listener lib module', function() {
         });
 
         this.moduleHelpers.addDep('pubsub', {
-          local: {
+          global: {
             topic: topicSpy
           }
         });
 
         this.moduleHelpers.addDep('calendar', {
           constants: {
-            NOTIFICATIONS: {
-              EVENT_ADDED: EVENT_ADDED
+            EVENTS: {
+              EVENT: {
+                CREATED: EVENT_CREATED
+              }
             }
           },
           helpers: {
-            jcal: {
-              jcal2content: jcal2contentSpy
+            pubsub: {
+              parseMessage
             }
           }
         });
@@ -270,7 +280,7 @@ describe('The listener lib module', function() {
 
         this.requireModule().start();
         handler(event).then(() => {
-          expect(jcal2contentSpy).to.have.been.calledWith(ics, '');
+          expect(parseMessage).to.have.been.calledWith(event);
           expect(handleSpy).to.have.been.calledWith({userId, emails: [email1, email2]});
           done();
         }, done);
