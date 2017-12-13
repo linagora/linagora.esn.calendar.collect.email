@@ -80,6 +80,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-run-grunt');
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-wait-server');
+  grunt.loadNpmTasks('grunt-release');
 
   grunt.registerTask('linters', 'Check code for lint', ['eslint:all', 'lint_pattern:all', 'lint_pattern:css']);
   grunt.registerTask('linters-dev', 'Check changed files for lint', ['prepare-quick-lint', 'eslint:quick', 'lint_pattern:quick']);
