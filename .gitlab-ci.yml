@@ -3,12 +3,24 @@ before_script:
 
 stages:
   - test
+  - release
 
 test:
   stage: test
+  except:
+    - triggers
   tags:
     - shell
+    - online.net
   script:
    - npm i
    - npm update
    - grunt
+
+release:
+  stage: release
+  only:
+    - triggers
+  script:
+    - if [ -z "${VERSION}" ]; then exit 0; fi
+    - grunt release:${VERSION}
