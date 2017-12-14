@@ -77,7 +77,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-shell-spawn');
   grunt.loadNpmTasks('grunt-continue');
-  grunt.loadNpmTasks('grunt-run-grunt');
+  grunt.loadNpmTasks('@linagora/grunt-run-grunt');
   grunt.loadNpmTasks('grunt-eslint');
   grunt.loadNpmTasks('grunt-wait-server');
   grunt.loadNpmTasks('grunt-release');
