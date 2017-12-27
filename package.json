@@ -1,6 +1,6 @@
 {
   "name": "linagora.esn.calendar.collect.email",
-  "version": "0.6.3-dev",
+  "version": "0.6.4-dev",
   "description": "Calendar Event Email collector Module for OpenPaaS",
   "main": "index.js",
   "devDependencies": {
