@@ -28,7 +28,7 @@ module.exports = dependencies => {
     .filter(attendee => attendee.cutype !== RESOURCE_CUTYPE)
     .map(entry => entry.email);
 
-    event.organizer.email && emails.push(event.organizer.email);
+    event.organizer && event.organizer.email && emails.push(event.organizer.email);
     emails = _.uniq(emails);
 
     return contactCollector.handler.handle({userId: eventPath.userId, emails});
