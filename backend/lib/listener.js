@@ -19,6 +19,12 @@ module.exports = dependencies => {
   function collect(msg) {
     logger.info('Collecting emails from Calendar event', msg);
 
+    if (msg.import) {
+      logger.debug('Event is from import, skipping collector');
+
+      return Promise.resolve(false);
+    }
+
     const { event, eventPath } = calendarModule.helpers.pubsub.parseMessage(msg);
     let emails = _.map(event.attendees, (data, email) => {
       data.email = email;
