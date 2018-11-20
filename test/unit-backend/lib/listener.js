@@ -226,6 +226,66 @@ describe('The listener lib module', function() {
         }, done);
       });
 
+      it('should not collect if event is imported', function(done) {
+        let handler;
+        const parseMessage = sinon.stub().returns({
+          eventPath: {userId},
+          event: jcal
+        });
+        const handleSpy = sinon.stub().returns(Promise.resolve());
+        const topicSpy = sinon.spy(function(topicName) {
+          if (topicName === EVENT_CREATED) {
+            return {
+              subscribe: function(_handler) {
+                handler = _handler;
+              }
+            };
+          }
+
+          return {
+            subscribe: function() {}
+          };
+        });
+
+        this.moduleHelpers.addDep('pubsub', {
+          global: {
+            topic: topicSpy
+          }
+        });
+
+        this.moduleHelpers.addDep('calendar', {
+          constants: {
+            EVENTS: {
+              EVENT: {
+                CREATED: EVENT_CREATED
+              }
+            }
+          },
+          helpers: {
+            pubsub: {
+              parseMessage
+            }
+          }
+        });
+
+        this.moduleHelpers.addDep('contact-collect', {
+          handler: {
+            handle: handleSpy
+          }
+        });
+
+        this.requireModule().start();
+
+        event.import = true;
+
+        handler(event).then(imported => {
+          expect(imported).to.be.false;
+          expect(parseMessage).to.not.have.been.called;
+          expect(handleSpy).to.not.have.been.called;
+          done();
+        }, done);
+      });
+
       it('should not collect attendee with cutype=resource', function(done) {
         let handler;
         const resourceEmail = 'id@domain.com';
