@@ -5,6 +5,7 @@ const sinon = require('sinon');
 
 describe('The listener lib module', function() {
   let email1, email2, orgEmail, jcal, userId, ics, event, EVENT_CREATED, EVENT_UPDATED;
+  let getSpy, receiveSpy;
 
   beforeEach(function() {
     email1 = 'me@mail.com';
@@ -45,26 +46,23 @@ describe('The listener lib module', function() {
     jcal.attendees[email1] = { partstat: 'NEEDS-ACTION', cn: undefined };
     jcal.attendees[email2] = { partstat: 'ACCEPTED', cn: undefined };
 
+    receiveSpy = sinon.spy();
+    getSpy = sinon.stub().returns({
+      receive: receiveSpy
+    });
+
+    this.moduleHelpers.addDep('messaging', {
+      pointToPoint: {
+        get: getSpy
+      }
+    });
     this.requireModule = function() {
       return require('../../../backend/lib/listener')(this.moduleHelpers.dependencies);
     };
   });
 
   describe('The start function', function() {
-    it('should subscribe to EVENT_ADDED local topic', function() {
-      const subscribeSpy = sinon.spy();
-      const topicSpy = sinon.spy(function() {
-        return {
-          subscribe: subscribeSpy
-        };
-      });
-
-      this.moduleHelpers.addDep('pubsub', {
-        global: {
-          topic: topicSpy
-        }
-      });
-
+    it('should receive to EVENT_ADDED local topic', function() {
       this.moduleHelpers.addDep('calendar', {
         constants: {
           EVENTS: {
@@ -76,25 +74,12 @@ describe('The listener lib module', function() {
       });
 
       this.requireModule().start();
-      expect(topicSpy).to.have.been.calledTwice;
-      expect(topicSpy).to.have.been.calledWith(EVENT_CREATED);
-      expect(subscribeSpy).to.have.been.calledTwice;
+      expect(getSpy).to.have.been.calledTwice;
+      expect(getSpy).to.have.been.calledWith(EVENT_CREATED);
+      expect(receiveSpy).to.have.been.calledTwice;
     });
 
-    it('should subscribe to EVENT_UPDATED global topic', function() {
-      const subscribeSpy = sinon.spy();
-      const topicSpy = sinon.spy(function() {
-        return {
-          subscribe: subscribeSpy
-        };
-      });
-
-      this.moduleHelpers.addDep('pubsub', {
-        global: {
-          topic: topicSpy
-        }
-      });
-
+    it('should receive to EVENT_UPDATED global topic', function() {
       this.moduleHelpers.addDep('calendar', {
         constants: {
           EVENTS: {
@@ -106,9 +91,9 @@ describe('The listener lib module', function() {
       });
 
       this.requireModule().start();
-      expect(topicSpy).to.have.been.calledTwice;
-      expect(topicSpy).to.have.been.calledWith(EVENT_UPDATED);
-      expect(subscribeSpy).to.have.been.calledTwice;
+      expect(getSpy).to.have.been.calledTwice;
+      expect(getSpy).to.have.been.calledWith(EVENT_UPDATED);
+      expect(receiveSpy).to.have.been.calledTwice;
     });
 
     describe('On event', function() {
@@ -119,23 +104,10 @@ describe('The listener lib module', function() {
           event: jcal
         });
         const handleSpy = sinon.stub().returns(Promise.resolve());
-        const topicSpy = sinon.spy(function(topicName) {
-          if (topicName === EVENT_CREATED) {
-            return {
-              subscribe: function(_handler) {
-                handler = _handler;
-              }
-            };
-          }
 
-          return {
-            subscribe: function() {}
-          };
-        });
-
-        this.moduleHelpers.addDep('pubsub', {
-          global: {
-            topic: topicSpy
+        getSpy.withArgs(EVENT_CREATED).returns({
+          receive: _handler => {
+            handler = _handler;
           }
         });
 
@@ -176,23 +148,10 @@ describe('The listener lib module', function() {
           event: jcal
         });
         const handleSpy = sinon.stub().returns(Promise.resolve());
-        const topicSpy = sinon.spy(function(topicName) {
-          if (topicName === EVENT_CREATED) {
-            return {
-              subscribe: function(_handler) {
-                handler = _handler;
-              }
-            };
-          }
 
-          return {
-            subscribe: function() {}
-          };
-        });
-
-        this.moduleHelpers.addDep('pubsub', {
-          global: {
-            topic: topicSpy
+        getSpy.withArgs(EVENT_CREATED).returns({
+          receive: _handler => {
+            handler = _handler;
           }
         });
 
@@ -233,23 +192,10 @@ describe('The listener lib module', function() {
           event: jcal
         });
         const handleSpy = sinon.stub().returns(Promise.resolve());
-        const topicSpy = sinon.spy(function(topicName) {
-          if (topicName === EVENT_CREATED) {
-            return {
-              subscribe: function(_handler) {
-                handler = _handler;
-              }
-            };
-          }
 
-          return {
-            subscribe: function() {}
-          };
-        });
-
-        this.moduleHelpers.addDep('pubsub', {
-          global: {
-            topic: topicSpy
+        getSpy.withArgs(EVENT_CREATED).returns({
+          receive: _handler => {
+            handler = _handler;
           }
         });
 
@@ -297,23 +243,10 @@ describe('The listener lib module', function() {
           event: jcal
         });
         const handleSpy = sinon.stub().returns(Promise.resolve());
-        const topicSpy = sinon.spy(function(topicName) {
-          if (topicName === EVENT_CREATED) {
-            return {
-              subscribe: function(_handler) {
-                handler = _handler;
-              }
-            };
-          }
 
-          return {
-            subscribe: function() {}
-          };
-        });
-
-        this.moduleHelpers.addDep('pubsub', {
-          global: {
-            topic: topicSpy
+        getSpy.withArgs(EVENT_CREATED).returns({
+          receive: _handler => {
+            handler = _handler;
           }
         });
 
