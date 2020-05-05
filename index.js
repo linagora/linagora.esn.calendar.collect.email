@@ -7,8 +7,8 @@ const MODULE_NAME = 'linagora.esn.calendar.collect.email';
 const calendarEmailCollectorModule = new AwesomeModule(MODULE_NAME, {
   dependencies: [
     new Dependency(Dependency.TYPE_NAME, 'linagora.esn.core.logger', 'logger'),
+    new Dependency(Dependency.TYPE_NAME, 'linagora.esn.core.pubsub', 'pubsub'),
     new Dependency(Dependency.TYPE_NAME, 'linagora.esn.calendar', 'calendar'),
-    new Dependency(Dependency.TYPE_NAME, 'linagora.esn.core.messaging', 'messaging'),
     new Dependency(Dependency.TYPE_NAME, 'linagora.esn.contact.collect', 'contact-collect')
   ],
 
