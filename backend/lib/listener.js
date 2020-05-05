@@ -2,8 +2,8 @@ const _ = require('lodash');
 const RESOURCE_CUTYPE = 'resource';
 
 module.exports = dependencies => {
+  const pubsub = dependencies('pubsub');
   const logger = dependencies('logger');
-  const pointToPointMessaging = dependencies('messaging').pointToPoint;
   const contactCollector = dependencies('contact-collect');
   const calendarModule = dependencies('calendar');
 
@@ -12,8 +12,8 @@ module.exports = dependencies => {
   };
 
   function start() {
-    pointToPointMessaging.get(calendarModule.constants.EVENTS.EVENT.CREATED).receive(collect);
-    pointToPointMessaging.get(calendarModule.constants.EVENTS.EVENT.UPDATED).receive(collect);
+    pubsub.global.topic(calendarModule.constants.EVENTS.EVENT.CREATED).subscribe(collect);
+    pubsub.global.topic(calendarModule.constants.EVENTS.EVENT.UPDATED).subscribe(collect);
   }
 
   function collect(msg) {
