@@ -35,6 +35,13 @@ module.exports = {
     interval_replica_set: process.env.MONGODB_INTERVAL_REPLICA_SET || 1000,
     tries_replica_set: process.env.MONGODB_TRIES_REPLICA_SET || 20,
     connectionString: 'mongodb://' + host + ':' + mongoPort + '/' + dbName,
+    connectionOptions: {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+      useFindAndModify: false,
+      auto_reconnect: true
+    },
     replicat_set_name: 'rs',
     dbname: dbName,
     dbpath: tmp + '/mongo/',
