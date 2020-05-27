@@ -3,7 +3,7 @@ const RESOURCE_CUTYPE = 'resource';
 
 module.exports = dependencies => {
   const logger = dependencies('logger');
-  const pointToPointMessaging = dependencies('messaging').pointToPoint;
+  const pubsub = dependencies('pubsub');
   const contactCollector = dependencies('contact-collect');
   const calendarModule = dependencies('calendar');
 
@@ -12,8 +12,8 @@ module.exports = dependencies => {
   };
 
   function start() {
-    pointToPointMessaging.get(calendarModule.constants.EVENTS.EVENT.CREATED).receive(collect);
-    pointToPointMessaging.get(calendarModule.constants.EVENTS.EVENT.UPDATED).receive(collect);
+    pubsub.local.topic(calendarModule.constants.EVENTS.EVENT.CREATED).subscribe(collect);
+    pubsub.local.topic(calendarModule.constants.EVENTS.EVENT.UPDATED).subscribe(collect);
   }
 
   function collect(msg) {
